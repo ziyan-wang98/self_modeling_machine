@@ -13,6 +13,7 @@ def _get_coord(features, axis):
     A tensor of shape [B, K] containing the keypoint centers along the given
       axis. The location is given in the range [-1, 1].
   """
+  device = "cuda" if th.cuda.is_available() else "cpu"
 
   if axis != 3 and axis != 2:
     raise ValueError("Axis needs to be 3 or 2.")
@@ -26,7 +27,7 @@ def _get_coord(features, axis):
 
   # Linear combination of the interval [-1, 1] using the normalized weights to
   # give a single coordinate in the same interval [-1, 1]
-  scale = th.linspace(-1.0, 1.0, axis_size).reshape(1, 1, axis_size).cuda()
+  scale = th.linspace(-1.0, 1.0, axis_size).reshape(1, 1, axis_size).to(device)
 
   # print(g_c_prob.shape, scale.shape)
   # coordinate = (g_c_prob * scale).sum(dim=1, keepdim=False)

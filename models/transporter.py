@@ -13,6 +13,9 @@ class Transporter(nn.Module):
         self._keypointer = keypointer
 
     def forward(self, image_a, image_b):
+        image_a = image_a.permute(0,3,1,2)
+        image_b = image_b.permute(0,3,1,2)
+
         image_a_features = self._encoder(image_a).detach()
         image_a_keypoints = self._keypointer(image_a)
         for key in image_a_keypoints:
@@ -43,6 +46,8 @@ class Transporter(nn.Module):
         reconstructed_image_b = self._decoder(
             transported_features)
 
+        reconstructed_image_b = reconstructed_image_b.permute(0,2,3,1)
+
         return {
             "reconstructed_image_b": reconstructed_image_b,
             "features_a": image_a_features,
@@ -52,6 +57,7 @@ class Transporter(nn.Module):
         }
 
     def get_keypoint(self, image):
+        image = image.permute(0,3,1,2)
         image_keypoints = self._keypointer(image)
         return image_keypoints
 

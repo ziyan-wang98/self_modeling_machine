@@ -76,7 +76,7 @@ class Net(nn.Module):
         self.use_dueling = dueling_param is not None
         output_dim = action_dim if not self.use_dueling and not concat else 0
         self.transporter = transporter
-        self.model = MLP(420, output_dim, hidden_sizes,
+        self.model = MLP(240, output_dim, hidden_sizes,
                          norm_layer, activation, device)
         self.output_dim = self.model.output_dim
 
@@ -88,8 +88,8 @@ class Net(nn.Module):
     ) -> Tuple[torch.Tensor, Any]:
         """Mapping: s -> flatten (inside MLP)-> logits."""
         s = torch.as_tensor(
-            s, device=self.device, dtype=torch.float32)  # type: ignore
-        s = self.transporter.get_keypoint(s)['centers'].reshape(-1, 420).detach()
+            s, device=self.device, dtype=torch.float32).reshape(-1, 48, 48, 3)  # type: ignore
+        s = self.transporter.get_keypoint(s)['centers'].reshape(-1, 240).detach()
         logits = self.model(s)
         bsz = logits.shape[0]
         if self.num_atoms > 1:

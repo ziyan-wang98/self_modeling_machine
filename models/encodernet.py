@@ -12,7 +12,9 @@ class Encoder(nn.Module):
                 "length of filters/kernel_sizes/strides lists must be the same")
 
         convs = []
-        in_cs = [9,] + list(filters)
+        # in_cs = [9,] + list(filters)
+        in_cs = [3,] + list(filters)
+
         for i in range(len(filters)):
             convs.append(nn.Conv2d(in_channels=in_cs[i],
                                    out_channels=filters[i],

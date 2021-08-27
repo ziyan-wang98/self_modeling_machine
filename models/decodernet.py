@@ -26,7 +26,8 @@ class Decoder(nn.Module):
                       padding=1))
 
         filters = filters_next
-        filters_next = max(9, filters // 2)
+        # filters_next = max(9, filters // 2)
+        filters_next = max(3, filters // 2)
 
         self.conv2 = nn.Sequential(
             nn.Conv2d(in_channels=filters,
@@ -42,19 +43,14 @@ class Decoder(nn.Module):
                       padding=1))
 
         filters = filters_next
-        filters_next = max(9, filters // 2)
+        filters_next = 3
 
         self.conv3 = nn.Sequential(
             nn.Conv2d(in_channels=filters,
-                      out_channels=filters,
+                      out_channels=filters_next,
                       kernel_size=(3, 3),
                       stride=1,
-                      padding=1),
-            nn.ReLU(True),
-            nn.Conv2d(in_channels=filters,
-                      out_channels=9,
-                      kernel_size=(3, 3),
-                      stride=1))
+                      padding=1))
 
 
         self.bn = nn.BatchNorm2d(32)
@@ -70,6 +66,10 @@ class Decoder(nn.Module):
         W *= 2
         features = F.upsample(features, size=(H, W), mode='bilinear')
         features = self.conv2(features)
+        # print('de2', features.shape)
+
+        features = self.conv3(features)
+
         # print('de3', features.shape)
 
         return features

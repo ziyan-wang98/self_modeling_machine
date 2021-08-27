@@ -17,10 +17,18 @@
 * 环境：噪声环境（自建）
 * 方法：MISA （模型无关抽象） (th)：构建转移模型，通过隐层转移模型
 
-## 整合
+### Reinforcement Learning through Active Inference
+
+
+## 整合 
+### Keypoints & Block MDPs
 * 学习目标：状态表示
 * 学习方法：建议状态转移预测网络，将ICP中 phi-model-decoder 三个网络 用Transporter部件重写
 其中model部分变成keypointmap算式
+
+### 状态表示 & Active Inference
+* 学习目标：策略
+* 学习方法：在经验池和planner中使用keypoint预处理state，转变为keypointmap center，再使用Active Inference逻辑进行运算和训练
 
 # Environment
 安装相关环境
@@ -30,23 +38,34 @@ pip install -r requirements.txt
 也可以在运行时缺什么装什么
 
 # Train
+## 整合版本
+```
+ python main.py --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100 
+ ```
+
+
 ## 学习状态表示
 检查是否正常运行，这仅将运行很少的轮次做运行验证
 ```
-python train_predicter.py --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 
-```
+ python train_predicter.py --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100  --num_envs 1
+ ```
 正式运行
 如果机器足够强 可以直接运行 train_predicter.py 
 也可以调整到其他恰当的参数。
 
 ## 训练策略
 ```
-python test_td3.py --batch-size 4 --training-num 2 --step-per-epoch 100
+python train_if.py
 ```
 正式运行
 如果机器足够强 可以直接运行 test_td3.py
 也可以调整到其他恰当的参数。
 
+## 参数说明
+
+* 学习状态表示部分参数， 见main.parse_args()
+* 学习策略部分参数， seed，batch_size，buffer_size 见main.parse_args()， 其他见pmbrl.get_config()
+* 环境相关参数 在env对应环境中
 
 # 代码逻辑说明
 - 本项目的整合方式是把keypoint的网络整合到block-MDP的运算逻辑中，由于第一个论文的观点可以看作是block-MDP的化简版本因此没有采纳此文章代码。

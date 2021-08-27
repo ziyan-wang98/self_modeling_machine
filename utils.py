@@ -11,6 +11,8 @@ import torch.nn as nn
 
 import dmc2gym
 
+from pybullet_envs.bullet.kuka_diverse_object_gym_env import KukaDiverseObjectEnv
+
 
 def make_env(bg, args):
     env = dmc2gym.make(

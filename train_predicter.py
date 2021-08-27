@@ -11,6 +11,9 @@ from torch.utils.data import DataLoader, Dataset
 import utils
 from models import Encoder, Decoder, KeyPointNet, Transporter
 
+from env.mykuka import KukaPAP as KukaDiverseObjectEnv
+
+
 trans_path = 'transporter_ckpt'
 
 def init_model(args):
@@ -80,23 +83,24 @@ def parse_args():
 
 
 def main(args):
+    if args.num_envs != 1:
+        args.num_envs = 1
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    args.work_dir = os.path.join(
-        args.work_dir,
-        args.domain_name + "_" + args.task_name,
-        str(args.seed),
-    )
+    args.work_dir = 'result'
     os.makedirs(args.work_dir, exist_ok=True)
     with open(os.path.join(args.work_dir, "args.json"), "w") as f:
         json.dump(vars(args), f, sort_keys=True, indent=4)
 
     train_envs = [
-        utils.make_env(np.random.randint(0, 255), args) for i in range(args.num_envs)
+        KukaDiverseObjectEnv(renders=True, isDiscrete=False)
+        # utils.make_env(np.random.randint(0, 255), args) for i in range(args.num_envs)
     ]
-    eval_envs = [utils.make_env(np.random.randint(0, 255), args) for i in range(5)]
-    print("Train env backgrounds: ", [train_env.bg_color for train_env in train_envs])
-    print("Eval env backgrounds: ", [eval_env.bg_color for eval_env in eval_envs])
+    eval_envs = train_envs
+    # eval_envs = [utils.make_env(np.random.randint(0, 255), args) for i in range(5)]
+    print("Train env backgrounds: ", [train_env.cid for train_env in train_envs])
+    print("Eval env backgrounds: ", [eval_env.cid for eval_env in eval_envs])
 
     obs_shape = train_envs[0].observation_space.shape
     action_size = train_envs[0].action_space.shape[0]
@@ -210,6 +214,10 @@ def main(args):
                 print(f"Mean test set error: {test_error}")
             torch.save(logging_dict, os.path.join(args.work_dir, "logging_dict.pt"))
             torch.save(model, os.path.join(args.work_dir, "tran_model.pth"))
+
+
+
+
 
 
 if __name__ == "__main__":

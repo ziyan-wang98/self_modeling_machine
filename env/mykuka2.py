@@ -129,6 +129,9 @@ class KukaPAP(KukaGymEnv):
         self._env_step = 0
         self.terminated = 0
 
+        self._firstTouch = False
+        self._firstGrasp = False
+
         p.resetSimulation()
         p.setPhysicsEngineParameter(numSolverIterations=150)
         p.setTimeStep(self._timeStep)
@@ -170,6 +173,7 @@ class KukaPAP(KukaGymEnv):
         # intersection.
         for _ in range(500):
             p.stepSimulation()
+
         return uid
 
     def _randomly_place_objects(self, urdfList):
@@ -279,7 +283,7 @@ class KukaPAP(KukaGymEnv):
         end_effector_pos = state[0]
         if not self._attempted_grasp and end_effector_pos[2] <= 0.1:
             finger_angle = 0.3
-            for _ in range(500):
+            for _ in range(100):
                 grasp_action = [0, 0, 0, 0, finger_angle]
                 self._kuka.applyAction(grasp_action)
                 p.stepSimulation()
@@ -291,18 +295,7 @@ class KukaPAP(KukaGymEnv):
             end_pos = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
             print(1, end_pos[0])
             for _ in range(100):
-                grasp_action = [0, 0, 0.05, 0, finger_angle]
-                self._kuka.applyAction(grasp_action)
-                p.stepSimulation()
-                if self._renders:
-                    time.sleep(self._timeStep)
-                finger_angle -= 0.3 / 100.
-                if finger_angle < 0:
-                    finger_angle = 0
-            end_pos = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
-            print(2, end_pos[0])
-            for _ in range(100):
-                grasp_action = [0.05, 0, 0, 0, finger_angle]
+                grasp_action = [0, 0, 0.02, 0, finger_angle]
                 self._kuka.applyAction(grasp_action)
                 p.stepSimulation()
                 if self._renders:
@@ -311,19 +304,26 @@ class KukaPAP(KukaGymEnv):
                 if finger_angle < 0:
                     finger_angle = 0
             self._attempted_grasp = True
-            end_pos = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
-            print(3, end_pos[0])
-            for _ in range(100):
-                grasp_action = [0, 0, 0, 0, finger_angle]
-                self._kuka.applyAction(grasp_action)
-                p.stepSimulation()
-                #if self._renders:
-                #  time.sleep(self._timeStep)
-                finger_angle += 0.5 / 100.
-                if finger_angle > 1:
-                    finger_angle = 1
-            for _ in range(400):
-                p.stepSimulation()
+        elif self._attempted_grasp:
+            for uid in self._objectUids:
+                pos, _ = p.getBasePositionAndOrientation(uid)
+                if pos[0] >= 0.9:
+                    print(pos)
+                    finger_angle = 0.5
+                    self._attempted_place = True
+
+                    for _ in range(100):
+                        grasp_action = [0, 0, 0, 0, finger_angle]
+                        self._kuka.applyAction(grasp_action)
+                        p.stepSimulation()
+                        #if self._renders:
+                        #  time.sleep(self._timeStep)
+                        finger_angle += 0.5 / 100.
+                        if finger_angle > 1:
+                            finger_angle = 1
+                    for _ in range(400):
+                        p.stepSimulation()
+                    break
 
         observation = self._get_observation()
         reward = self._reward()
@@ -339,12 +339,37 @@ class KukaPAP(KukaGymEnv):
         episode.
         """
         reward = 0
+        print(p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex))
+        # 第一次碰到
+        if not self._firstTouch:
+            state = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
+            end_effector_pos = state[0]
+            for uid in self._objectUids:
+                pos, _ = p.getBasePositionAndOrientation(uid)
+                dis = sum([(i-j) ** 2 for i, j in zip(end_effector_pos, pos)])
+                if dis < 0.1:
+                    print("great, U are very close to it")
+                    reward += 1
+                    self._firstTouch = True
+                    break
+        # 第一次抓到:
+        if not self._firstGrasp:
+            for uid in self._objectUids:
+                pos, _ = p.getBasePositionAndOrientation(uid)
+                if pos[2]> 0.1:
+                    print("great, U grasp it")
+                    self._firstGrasp = True
+                    reward += 10
+                    break
+        # 到达目标位置
         self._placeSuccess = 0
         for uid in self._objectUids:
             pos, _ = p.getBasePositionAndOrientation(uid)
             # If any block is above height, provide reward
-            print(p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex))
-            if pos[0] > 0.8 and pos[2] < 0 :
+            if 1 > pos[0] > 0.8 and pos[2] < 0 :
+                print("great, U place it")
+                self._attempted_place = True
+
                 self._placeSuccess += 1
                 reward = 1
                 break
@@ -354,7 +379,7 @@ class KukaPAP(KukaGymEnv):
         """Terminates the episode if we have tried to grasp or if we are above
         maxSteps steps.
         """
-        return self._attempted_grasp or self._env_step >= self._maxSteps
+        return self._attempted_place or self._env_step >= self._maxSteps
 
     def _get_random_object(self, num_objects, test):
         """Randomly choose an object urdf from the random_urdfs directory.

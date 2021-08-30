@@ -45,7 +45,10 @@ def main(args):
     state_size = 240
 
     normalizer = Normalizer()
-    transporter = torch.load(os.path.join('result', "tran_model.pth"))
+    if torch.cuda.is_available():
+        transporter = torch.load(os.path.join('result', "tran_model.pth"))
+    else:
+        transporter = torch.load(os.path.join('result', "tran_model.pth"), map_location=torch.device('cpu'))
 
     buffer = Buffer(state_size, action_size, args.ensemble_size, normalizer, transporter=transporter, buffer_size=args.buffer_size, device=DEVICE)
 
@@ -139,4 +142,5 @@ if __name__ == "__main__":
     config.n_candidates = 5
     config.top_candidates = 2
     config.n_train_epochs = 1
+    config.use_mean = True
     main(config)

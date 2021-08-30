@@ -53,6 +53,11 @@ pip install -r requirements.txt
 如果机器足够强 可以直接运行 train_predicter.py 
 也可以调整到其他恰当的参数。
 
+观察训练情况
+```python
+tensorboard --logdir=./log
+```
+
 ## 训练策略
 ```
 python train_if.py

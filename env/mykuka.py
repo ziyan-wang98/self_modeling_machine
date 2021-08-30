@@ -27,7 +27,7 @@ class KukaPAP(KukaGymEnv):
                  isEnableSelfCollision=True,
                  renders=False,
                  isDiscrete=False,
-                 maxSteps=20,
+                 maxSteps=30,
                  dv=0.8,
                  removeHeightHack=False,
                  blockRandom=0.3,
@@ -343,7 +343,7 @@ class KukaPAP(KukaGymEnv):
             end_effector_pos = state[0]
             for uid in self._objectUids:
                 pos, _ = p.getBasePositionAndOrientation(uid)
-                dis = sum([(i-j) ^ 2 for i, j in zip(end_effector_pos, pos)])
+                dis = sum([(i-j) ** 2 for i, j in zip(end_effector_pos, pos)])
                 if dis < 0.1:
                     reward += 1
                     self._firstTouch = True

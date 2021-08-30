@@ -7,6 +7,7 @@ import torch
 import torch.nn.functional as F
 from torch import autograd, nn, optim
 from torch.utils.data import DataLoader, Dataset
+from torch.utils.tensorboard import SummaryWriter
 
 import utils
 from models import Encoder, Decoder, KeyPointNet, Transporter
@@ -92,6 +93,8 @@ def main(args):
     os.makedirs(args.work_dir, exist_ok=True)
     with open(os.path.join(args.work_dir, "args.json"), "w") as f:
         json.dump(vars(args), f, sort_keys=True, indent=4)
+
+    writer = SummaryWriter('./log')
 
     train_envs = [
         KukaDiverseObjectEnv(renders=True, isDiscrete=False)
@@ -182,6 +185,9 @@ def main(args):
         model_error.backward(retain_graph=True)
         opt.step()
 
+        writer.add_scalar('train/model_error', model_error.item(), iteration)
+        writer.add_scalar('train/decoding_error', decoder_error.item(), iteration)
+
         # decoder_opt.zero_grad()
         # decoder_error.backward()
         # decoder_opt.step()
@@ -211,9 +217,13 @@ def main(args):
                     # true_next_latent = phi(next_obses).detach()
                     # test_error = F.mse_loss(pred_next_latent, true_next_latent)
                 logging_dict["eval_model_error"].append(test_error.item())
+
+                writer.add_scalar('eval/model_error', test_error.item(), iteration)
                 print(f"Mean test set error: {test_error}")
+            writer.close()
             torch.save(logging_dict, os.path.join(args.work_dir, "logging_dict.pt"))
             torch.save(model, os.path.join(args.work_dir, "tran_model.pth"))
+
 
 
 

@@ -1,0 +1,87 @@
+01:15:36
+
+=== Loading experiment [device: cuda] ===
+
+{'action_noise': None,
+ 'action_repeat': 3,
+ 'batch_size': 128,
+ 'buffer_size': 1000000,
+ 'coverage': False,
+ 'ensemble_size': 30,
+ 'env_name': None,
+ 'epsilon': 1e-08,
+ 'expl_scale': 1.0,
+ 'expl_strategy': 'information',
+ 'grad_clip_norm': 1000,
+ 'hidden_size': 200,
+ 'learning_rate': 0.001,
+ 'logdir': 'log',
+ 'max_episode_len': 500,
+ 'n_candidates': 500,
+ 'n_episodes': 100000,
+ 'n_seed_episodes': 5,
+ 'n_train_epochs': 100,
+ 'optimisation_iters': 5,
+ 'plan_horizon': 30,
+ 'record_every': None,
+ 'reward_scale': 1.0,
+ 'seed': 1,
+ 'strategy': 'information',
+ 'top_candidates': 50,
+ 'use_exploration': True,
+ 'use_mean': False,
+ 'use_reward': True}
+
+Collected seeds: [5 episodes | 150 frames]
+
+=== Episode 1 ===
+Training on [150/450] data points
+> Train epoch 20 [ensemble 246.01 | reward 0.02]
+> Train epoch 40 [ensemble 140.07 | reward 0.02]
+> Train epoch 60 [ensemble 93.33 | reward 0.02]
+> Train epoch 80 [ensemble 66.09 | reward 0.02]
+> Train epoch 100 [ensemble 46.88 | reward 0.02]
+Ensemble loss 46.88 / Reward Loss 0.02
+
+=== Collecting data [1] ===
+> Step 25 [reward 0.00]
+Rewards 0.00 / Steps 30.00
+Reward stats:
+ {'max': '56.24', 'mean': '0.17', 'min': '-48.95', 'std': '4.75'}
+Information gain stats:
+ {'max': '24896.74', 'mean': '16250.61', 'min': '12817.57', 'std': '1484.75'}
+Episode time 17.50
+Saved _metrics_
+
+=== Episode 2 ===
+Training on [180/540] data points
+> Train epoch 20 [ensemble 250.44 | reward 0.02]
+> Train epoch 40 [ensemble 142.72 | reward 0.02]
+> Train epoch 60 [ensemble 94.34 | reward 0.02]
+> Train epoch 80 [ensemble 65.53 | reward 0.02]
+> Train epoch 100 [ensemble 45.14 | reward 0.01]
+Ensemble loss 45.14 / Reward Loss 0.01
+
+=== Collecting data [2] ===
+> Step 25 [reward 0.00]
+Rewards 0.00 / Steps 30.00
+Reward stats:
+ {'max': '925.45',
+ 'mean': '-87693176.00',
+ 'min': '-2693069312.00',
+ 'std': '472255040.00'}
+Information gain stats:
+ {'max': '71754.61', 'mean': '26228.50', 'min': '13935.12', 'std': '10521.96'}
+Episode time 16.07
+Saved _metrics_
+
+=== Episode 3 ===
+Training on [210/630] data points
+> Train epoch 20 [ensemble 263.87 | reward 0.02]
+> Train epoch 40 [ensemble 154.22 | reward 0.02]
+> Train epoch 60 [ensemble 104.59 | reward 0.01]
+> Train epoch 80 [ensemble 75.70 | reward 0.01]
+> Train epoch 100 [ensemble 55.31 | reward 0.01]
+Ensemble loss 55.31 / Reward Loss 0.01
+
+=== Collecting data [3] ===

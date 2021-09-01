@@ -58,13 +58,18 @@ pip install -r requirements.txt
 tensorboard --logdir=./log
 ```
 
-## 训练策略
+## 训练IF策略
 ```
 python train_if.py
 ```
 正式运行
 如果机器足够强 可以直接运行 test_td3.py
 也可以调整到其他恰当的参数。
+
+## 训练TD3策略
+```python
+python test_td3.py --step-per-epoch 20 --buffer-size 100 --batch-size 4
+```
 
 ## 参数说明
 

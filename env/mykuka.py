@@ -35,7 +35,8 @@ class KukaPAP(KukaGymEnv):
                  width=48,
                  height=48,
                  numObjects=5,
-                 isTest=False):
+                 isTest=False,
+                 flatten=False):
         """Initializes the KukaDiverseObjectEnv.
 
         Args:
@@ -83,6 +84,7 @@ class KukaPAP(KukaGymEnv):
         self._height = height
         self._numObjects = numObjects
         self._isTest = isTest
+        self._flatten = flatten
 
         if self._renders:
             self.cid = p.connect(p.SHARED_MEMORY)
@@ -105,6 +107,8 @@ class KukaPAP(KukaGymEnv):
         self.observation_space = spaces.Box(low=0, high=255, shape=(self._height,
                                                                     self._width,
                                                                     3))
+        if self._flatten:
+            self.observation_space = spaces.Box(low=0, high=255, shape=(self._height * self._width * 3,))
         self.viewer = None
 
     def reset(self):
@@ -209,7 +213,10 @@ class KukaPAP(KukaGymEnv):
                                    projectionMatrix=self._proj_matrix)
         rgb = img_arr[2]
         np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
-        return np_img_arr[:, :, :3]
+        if self._flatten:
+            return (np_img_arr[:, :, :3]).flatten()
+        else:
+            return np_img_arr[:, :, :3]
 
     def step(self, action):
         """Environment step.

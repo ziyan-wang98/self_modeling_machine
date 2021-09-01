@@ -102,8 +102,8 @@ class EnsembleModel(nn.Module):
         return loss
 
     def sample(self, mean, var):
-        print('------------var')
-        print(var)
+        # print('------------var')
+        # print(var)
         return Normal(mean, torch.sqrt(var)).sample()
 
     def reset_parameters(self):

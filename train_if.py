@@ -10,6 +10,7 @@ import os
 import numpy as np
 import torch
 from gym.wrappers.monitoring.video_recorder import VideoRecorder
+from torch.utils.tensorboard import SummaryWriter
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
@@ -31,6 +32,8 @@ def main(args):
     logger.log("\n=== Loading experiment [device: {}] ===\n".format(DEVICE))
     logger.log(args)
 
+    # writer = SummaryWriter('./active_inference_log')
+
     rate_buffer = None
     if args.coverage:
         from pmbrl.envs.envs.ant import rate_buffer
@@ -40,7 +43,7 @@ def main(args):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
 
-    env = KukaDiverseObjectEnv(renders=True, isDiscrete=False)
+    env = KukaDiverseObjectEnv(renders=False, isDiscrete=False)
     action_size = env.action_space.shape[0]
     state_size = 240
 
@@ -120,10 +123,17 @@ def main(args):
         logger.log_episode(reward, steps)
         logger.log_stats(stats)
 
+        # writer.add_scalar('Active_inference_train/ensemble_loss', ensemble_loss.item(), episode)
+        # writer.add_scalar('Active_inference_train/reward', reward.item(), episode)
+        # writer.add_scalar('Active_inference_train/reward_loss', reward_loss.item(), episode)
+
         if args.coverage:
             coverage = rate_buffer(buffer=buffer)
             logger.log_coverage(coverage)
 
+        # torch.save(logger, os.path.join(args.work_dir, "ai_logger.pt"))
+        # torch.save(reward_model, os.path.join(args.work_dir, "ai_agent.pth"))
+        # writer.close()
         logger.log_time(time.time() - start_time)
         logger.save()
 

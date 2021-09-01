@@ -55,6 +55,7 @@ def parse_args():
     # training
     parser.add_argument("--num_iters", default=100000, type=int)
     parser.add_argument("--lr", default=1e-3, type=float)
+    parser.add_argument("--alpha", default=0.5, type=float, help="model error : decode error")
     parser.add_argument("--batch_size", default=128, type=int)
     parser.add_argument(
         "--one_decoder", action="store_true", help="baseline with single decoder"
@@ -181,16 +182,16 @@ def main(args):
             decoder_error_e = F.mse_loss(result['reconstructed_image_b'], next_obses)
             decoder_error += decoder_error_e
 
+        error = args.alpha * model_error + (1 - args.alpha) * decoder_error
+
         opt.zero_grad()
-        model_error.backward(retain_graph=True)
+        error.backward(retain_graph=True)
         opt.step()
 
         writer.add_scalar('train/model_error', model_error.item(), iteration)
         writer.add_scalar('train/decoding_error', decoder_error.item(), iteration)
 
-        # decoder_opt.zero_grad()
-        # decoder_error.backward()
-        # decoder_opt.step()
+
         if iteration % args.log_interval == 0:
             with torch.no_grad():
                 logging_dict["steps"].append(iteration)

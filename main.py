@@ -56,14 +56,15 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    print("train predicter", args)
-    train_predicter.main(args)
+    # print("train predicter", args)
+    # train_predicter.main(args)
 
     print("train policy")
 
     config = get_config(args)
     config.batch_size = args.batch_size
     config.buffer_size = args.replay_buffer_capacity
+    config.n_episodes = 100000
     train_if.main(config)
 
 

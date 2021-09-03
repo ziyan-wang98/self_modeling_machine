@@ -79,10 +79,9 @@ def collect_random_data(env, env_id, num_samples, replay_buffer, save_video=Fals
     obs = env.reset()
     if save_video:
         frames = [obs]
-    print(" Start Collecting the Random Data")
     for i in range(num_samples):
         if i % 1000 == 0:
-            print("Random Choosing Actions: {} / {}".format(i+1, num_samples))
+            print("Random Choosing Actions: {} / {}".format(i + 1, num_samples))
         action = env.action_space.sample()
         next_obs, reward, done, _ = env.step(action)
         replay_buffer.add(env_id, obs, action, reward, next_obs, done)

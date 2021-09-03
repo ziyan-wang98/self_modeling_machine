@@ -37,6 +37,9 @@ import random
 
 import os
 import torch
+from torch.utils.tensorboard import SummaryWriter
+from tianshou.exploration import GaussianNoise
+
 
 from .ReplayBuffer import ReplayBuffer
 from .ActorNetwork import ActorNetwork
@@ -76,8 +79,13 @@ class DDPGAgent:
         self.epsilon_decay = 0.001
 
 
+        log_path = os.path.join('log', 'ddpg')
+        self.writer = SummaryWriter(log_path)
 
-    def train(self):
+        self.noise = GaussianNoise(sigma=0.1)
+
+
+    def train(self, env_step):
         if self.memory.count() <= self.BATCH_SIZE:
             return
 
@@ -121,6 +129,8 @@ class DDPGAgent:
         for param, target_param in zip(self.actor.parameters(), self.target_actor.parameters()):
             target_param.data.copy_(TAU * param.data + (1 - TAU) * target_param.data)
 
+        self.writer.add_scalar('reward', loss.item(), env_step)
+
         self.epsilon = max(0, self.epsilon - self.epsilon_decay)
 
 
@@ -134,32 +144,35 @@ class DDPGAgent:
         obs = env.reset()
         for env_step in range(1, self.TOTAL_STEPS+1):
             if env_step % 1000 == 0:
-                print("Training: {} / {}".format(env_step+1, self.TOTAL_STEPS+1))
+                print("Training: {} / {}".format(env_step + 1, self.TOTAL_STEPS + 1))
             obs = torch.FloatTensor(obs).transpose(0,2).unsqueeze(0) / 255
-            action = self.actor(obs)
+            action = self.actor(obs).detach().numpy()
+            if random.random() < self.epsilon:
+                action = action + self.noise(action.shape)
+
             next_obs, reward, done, _ = env.step(action[0])
 
 
             self.memory.add(
                 state=obs,
-                action=action,
+                action=torch.FloatTensor(action),
                 reward=reward,
                 new_state=torch.FloatTensor(next_obs).transpose(0,2).unsqueeze(0) / 255,
                 done=done
             )
             obs = next_obs
-            self.train()
+            self.train(env_step)
             if done:
                 obs = env.reset()
+                self.writer.add_scalar('reward', reward, env_step)
 
             if env_step % 10 == 0:
                         torch.save(self.actor.state_dict(), self.MODEL_PATH + '/actormodel.pth')
                         torch.save(self.critic.state_dict(), self.MODEL_PATH + '/criticmodel.pth')
 
     def collect(self, env:KukaDiverseObjectEnv, num_samples, replay_buffer, env_id, MODEL_PATH=None):
-        print("Start colleccting the Expert Trajectory")
         if not MODEL_PATH is None:
-            self.actor = torch.load(MODEL_PATH + '/actormodel.pth')
+            self.actor.load_state_dict(torch.load(MODEL_PATH + '/actormodel.pth'))
         else:
             MODEL_PATH = self.MODEL_PATH
             if not os.path.exists(MODEL_PATH):
@@ -168,21 +181,20 @@ class DDPGAgent:
         obs = env.reset()
         for env_step in range(1, num_samples+1):
             obs_x = torch.FloatTensor(obs).transpose(0,2).unsqueeze(0) / 255
-            action = self.actor(obs_x)
-            next_obs, reward, done, _ = env.step(action[0])
-            replay_buffer.add(env_id, obs, action.detach().numpy()[0], reward, next_obs, done)
+            action = self.actor(obs_x).detach().numpy()[0]
+            next_obs, reward, done, _ = env.step(action)
+            replay_buffer.add(env_id, obs, action, reward, next_obs, done)
 
             obs = next_obs
-            self.train()
             if done:
                 obs = env.reset()
         return replay_buffer
 
-def collect_ddpg_data(env, env_id, num_samples, replay_buffer, mode='load'):
+def collect_ddpg_data(env, env_id, num_samples, replay_buffer, mode='load', MODEL_PATH=None):
     agent = DDPGAgent(50000, 128)
     if mode == 'train':
         agent.run(env)
-    return agent.collect(env, num_samples, replay_buffer, env_id)
+    return agent.collect(env, num_samples, replay_buffer, env_id, MODEL_PATH)
 
 
 

@@ -38,6 +38,11 @@ pip install -r requirements.txt
 也可以在运行时缺什么装什么
 
 # Train
+##观察训练情况
+```python
+tensorboard --logdir=./log
+```
+
 ## 整合版本
 ```
  python main.py --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100 
@@ -47,18 +52,31 @@ pip install -r requirements.txt
 ## 学习状态表示
 检查是否正常运行，这仅将运行很少的轮次做运行验证
 ```
- python train_predicter.py --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100  --num_envs 1
+ python train_predicter_collect_by_ddpg.py --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100  --num_envs 1
  ```
 正式运行
 如果机器足够强 可以直接运行 train_predicter.py 
 也可以调整到其他恰当的参数。
 
-观察训练情况
-```python
-tensorboard --logdir=./log
+### 随机采样
+
+```
+ python train_predicter_collect_by_ddpg.py --mode random --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100  --num_envs 1
 ```
 
-## 训练IF策略
+### DDPG采样
+单独训练ddpg 可以通过运行`train_ddpg.py`
+使用一个已有策略采样
+```
+ python train_predicter_collect_by_ddpg.py --mode load --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100  --num_envs 1
+ ```
+使用重新训练策略采样
+```
+ python train_predicter_collect_by_ddpg.py --mode train --num_samples 10 --num_iters 10 --batch_size 2 --log_interval 5 --replay_buffer_capacity 100  --num_envs 1
+ ```
+
+## 训练策略
+### IF
 ```
 python train_if.py
 ```
@@ -66,10 +84,15 @@ python train_if.py
 如果机器足够强 可以直接运行 test_td3.py
 也可以调整到其他恰当的参数。
 
-## 训练TD3策略
-```python
-python test_td3.py --step-per-epoch 20 --buffer-size 100 --batch-size 4
+## TD3
 ```
+python test_td3.py --batch-size 4 --training-num 2 --step-per-epoch 20
+```
+正式运行
+如果机器足够强 可以直接运行 test_td3.py
+也可以调整到其他恰当的参数。
+
+
 
 ## 参数说明
 

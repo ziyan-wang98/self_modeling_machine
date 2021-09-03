@@ -37,11 +37,11 @@ class Buffer(object):
         idx = self._total_steps % self.buffer_size
         s = torch.as_tensor(
             state, device=self.device, dtype=torch.float32).reshape(-1, 48, 48, 3)  # type: ignore
-        state = self.transporter.get_keypoint(s)['centers'].reshape(-1, 240).detach().cpu().numpy()
+        state = self.transporter.get_keypoint(s)['centers'].reshape(-1, 240).cpu().detach().numpy()
 
         s = torch.as_tensor(
             next_state, device=self.device, dtype=torch.float32).reshape(-1, 48, 48, 3)  # type: ignore
-        next_state = self.transporter.get_keypoint(s)['centers'].reshape(-1, 240).detach().cpu().numpy()
+        next_state = self.transporter.get_keypoint(s)['centers'].reshape(-1, 240).cpu().detach().numpy()
         state_delta = next_state - state
 
         self.states[idx] = state

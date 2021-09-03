@@ -3,8 +3,7 @@ import numpy as np
 from torch import nn
 from typing import Any, Dict, List, Type, Tuple, Union, Optional, Sequence
 from tianshou.utils.net.common import MLP
-# from .transporter import Transporter
-from .cnn import Encoder
+from .transporter import Transporter
 
 ModuleType = Type[nn.Module]
 
@@ -57,6 +56,7 @@ class Net(nn.Module):
         state_shape: Union[int, Sequence[int]],
         action_shape: Union[int, Sequence[int]] = 0,
         hidden_sizes: Sequence[int] = (),
+        transporter: Transporter = None,
         norm_layer: Optional[ModuleType] = None,
         activation: Optional[ModuleType] = nn.ReLU,
         device: Union[str, int, torch.device] = "cpu",
@@ -69,15 +69,15 @@ class Net(nn.Module):
         self.device = device
         self.softmax = softmax
         self.num_atoms = num_atoms
-        input_dim = 4608
+        input_dim = 240
         action_dim = int(np.prod(action_shape)) * num_atoms
-        self.action_shape = action_shape
+        self.action_dim = action_dim
+        self.concat = concat
         if concat:
             input_dim += action_dim
         self.use_dueling = dueling_param is not None
         output_dim = action_dim if not self.use_dueling and not concat else 0
-        # self.transporter = transporter
-        self.encoder = Encoder(filters=(16,32), kernel_sizes=(3,3), strides=(1,1))
+        self.transporter = transporter
         self.model = MLP(input_dim, output_dim, hidden_sizes,
                          norm_layer, activation, device)
         self.output_dim = self.model.output_dim
@@ -91,11 +91,15 @@ class Net(nn.Module):
         """Mapping: s -> flatten (inside MLP)-> logits."""
         s = torch.as_tensor(
             s, device=self.device, dtype=torch.float32)
-        s = s.reshape(-1, 48, 48, 3).permute(0,3,1,2)  # type: ignore
-        bs, _, _, _ = s.shape
-        s = self.encoder(s).reshape(bs, -1)
-        if self.action_shape != 0:
-            s = torch.cat([s, action], -1)
+        a = None
+        if self.concat:
+            a = s[:, -3:]
+            s = s[:, :-3]
+        # print(s.shape)
+        s = s.reshape(-1, 48, 48, 3)
+        s = self.transporter.get_keypoint(s)['centers'].reshape(-1, 240).detach()
+        if self.concat:
+            s = torch.cat([s,a], dim=-1)
         logits = self.model(s)
         bsz = logits.shape[0]
         if self.num_atoms > 1:

@@ -44,7 +44,7 @@ def init_model(args):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--alpha", default=0.5, type=float, help="model error : decode error")
+    parser.add_argument("--alpha", default=0.95, type=float, help="model error : decode error")
     parser.add_argument("--mode", default='random', type=str, help="collect mode random, load policy, train new policy")
 
     # environment
@@ -99,7 +99,10 @@ def main(args):
     with open(os.path.join(args.work_dir, "args.json"), "w") as f:
         json.dump(vars(args), f, sort_keys=True, indent=4)
 
-    writer = SummaryWriter('./log')
+
+    log_path = os.path.join('log', 'predictor', args.mode)
+
+    writer = SummaryWriter(log_path)
 
     train_envs = [
         KukaDiverseObjectEnv(renders=False, isDiscrete=False)
@@ -168,6 +171,7 @@ def main(args):
                 args.num_samples,
                 train_replay_buffer,
                 mode='load',
+                MODEL_PATH='result'
             )
         else:
             train_replay_buffer = collect_ddpg_data(
@@ -177,14 +181,12 @@ def main(args):
                 train_replay_buffer,
                 mode='train',
             )
-        print("-------Finish Training--------")
         eval_replay_buffer = utils.collect_random_data(
             eval_envs[env_id], env_id, args.num_samples, eval_replay_buffer
         )
 
     # Train loop
     for iteration in range(args.num_iters):
-        print("State Training : {} / {}".format(iteration, args.num_iters))
         model_error = 0
         decoder_error = 0
         for i in range(args.num_envs):

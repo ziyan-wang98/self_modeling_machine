@@ -26,8 +26,8 @@ class Config(object):
         self.buffer_size = 10 ** 6
         self.logdir = "log"
         self.seed = 0
-        self.n_episodes = 50
-        self.n_seed_episodes = 5
+        self.n_episodes = 1000
+        self.n_seed_episodes = 1
         self.record_every = None
         self.coverage = False
 
@@ -39,13 +39,13 @@ class Config(object):
         self.ensemble_size = 30
         self.hidden_size = 200
 
-        self.n_train_epochs = 100
-        self.batch_size = 50
+        self.n_train_epochs = 1000
+        self.batch_size = 128
         self.learning_rate = 1e-3
         self.epsilon = 1e-8
         self.grad_clip_norm = 1000
 
-        self.plan_horizon = 30
+        self.plan_horizon = 5
         self.optimisation_iters = 5
         self.n_candidates = 500
         self.top_candidates = 50

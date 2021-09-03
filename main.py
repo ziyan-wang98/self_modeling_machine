@@ -2,13 +2,18 @@ import argparse
 import json
 import os
 
-import train_predicter
+import train_predicter_collect_by_ddpg
 import train_if
 from pmbrl import get_config
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
+
+    parser.add_argument("--alpha", default=0.5, type=float, help="model error : decode error")
+    parser.add_argument("--mode", default='random', type=str, help="collect mode random, load policy, train new policy")
+
+
     # environment
     parser.add_argument("--domain_name", default="cheetah")
     parser.add_argument("--task_name", default="run")
@@ -56,15 +61,14 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    # print("train predicter", args)
-    # train_predicter.main(args)
+    print("train predicter", args)
+    train_predicter.main(args)
 
     print("train policy")
 
     config = get_config(args)
     config.batch_size = args.batch_size
     config.buffer_size = args.replay_buffer_capacity
-    config.n_episodes = 100000
     train_if.main(config)
 
 

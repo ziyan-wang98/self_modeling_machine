@@ -10,7 +10,6 @@ import os
 import numpy as np
 import torch
 from gym.wrappers.monitoring.video_recorder import VideoRecorder
-from torch.utils.tensorboard import SummaryWriter
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
@@ -23,6 +22,8 @@ from pmbrl import get_config
 
 from env.mykuka import KukaPAP as KukaDiverseObjectEnv
 
+from torch.utils.tensorboard import SummaryWriter
+
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -32,7 +33,9 @@ def main(args):
     logger.log("\n=== Loading experiment [device: {}] ===\n".format(DEVICE))
     logger.log(args)
 
-    # writer = SummaryWriter('./active_inference_log')
+    log_path = os.path.join('log', 'if')
+
+    writer = SummaryWriter(log_path)
 
     rate_buffer = None
     if args.coverage:
@@ -43,7 +46,7 @@ def main(args):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
 
-    env = KukaDiverseObjectEnv(renders=False, isDiscrete=False)
+    env = KukaDiverseObjectEnv(renders=True, isDiscrete=False)
     action_size = env.action_space.shape[0]
     state_size = 240
 
@@ -96,6 +99,7 @@ def main(args):
     )
     agent = Agent(env, planner, logger=logger)
 
+
     agent.get_seed_episodes(buffer, args.n_seed_episodes)
     msg = "\nCollected seeds: [{} episodes | {} frames]"
     logger.log(msg.format(args.n_seed_episodes, buffer.total_steps))
@@ -109,8 +113,10 @@ def main(args):
         trainer.reset_models()
         ensemble_loss, reward_loss = trainer.train()
         logger.log_losses(ensemble_loss, reward_loss)
+        writer.add_scalar('train/ensemble_loss', ensemble_loss, episode)
+        writer.add_scalar('train/reward_loss', reward_loss, episode)
 
-        recorder = None
+
         if args.record_every is not None and args.record_every % episode == 0:
             filename = logger.get_video_path(episode)
             recorder = VideoRecorder(env.unwrapped, path=filename)
@@ -118,22 +124,17 @@ def main(args):
 
         logger.log("\n=== Collecting data [{}] ===".format(episode))
         reward, steps, stats = agent.run_episode(
-            buffer, action_noise=args.action_noise, recorder=recorder
+            buffer, action_noise=args.action_noise, recorder=None
         )
         logger.log_episode(reward, steps)
         logger.log_stats(stats)
 
-        # writer.add_scalar('Active_inference_train/ensemble_loss', ensemble_loss.item(), episode)
-        # writer.add_scalar('Active_inference_train/reward', reward.item(), episode)
-        # writer.add_scalar('Active_inference_train/reward_loss', reward_loss.item(), episode)
+        writer.add_scalar('train/reward', reward, episode)
 
         if args.coverage:
             coverage = rate_buffer(buffer=buffer)
             logger.log_coverage(coverage)
 
-        # torch.save(logger, os.path.join(args.work_dir, "ai_logger.pt"))
-        # torch.save(reward_model, os.path.join(args.work_dir, "ai_agent.pth"))
-        # writer.close()
         logger.log_time(time.time() - start_time)
         logger.save()
 

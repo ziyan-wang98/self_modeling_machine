@@ -66,7 +66,7 @@ class Planner(nn.Module):
             state, device=self.device, dtype=torch.float32).reshape(1, 48, 48, 3)  # type: ignore
         state = self.transporter.get_keypoint(s)['centers'].reshape(240).detach()
 
-        print("state", state.shape)
+        # print("state", state.shape)
 
         state_size = state.size(0)
 

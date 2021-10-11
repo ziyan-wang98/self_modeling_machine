@@ -25,21 +25,21 @@ Check whether it is running normally, this will only run a few rounds for runnin
 
 ## 2. Train
 
-### Integrated version:
+### 2.1. Integrated version:
 Using the random exploration and active inference for policy trainning:
 ```
  python main.py 
 ```
 Part of the hyperparameters represented by the learning state， please check the function main.parse_args().
-### Inner State Trainning:
+###  2.2. Inner State Trainning:
 
-#### Random Sampling
+#### 2.2.1 Random Sampling
 
 ```
  python train_predicter_collect_by_ddpg.py --mode random --num_samples 100000 --num_iters 1000 --batch_size 256 --log_interval 5 --replay_buffer_capacity 1000  --num_envs 1
 ```
 
-#### DDPG Expert Trajectory Sampling
+#### 2.2.2 DDPG Expert Trajectory Sampling
 
 Firstly, using DDPG to learning a trajectory:
 ```
@@ -52,12 +52,12 @@ Then, train inner state using DDPG exper trajectory:
 ```
 
 
-### Policy Learning:
-#### Active Inference
+### 2.3. Policy Learning:
+#### 2.3.1 Active Inference
 ```
 python train_if.py
 ```
-#### TD3
+#### 2.3.2 TD3
 ```
 python test_td3.py
 ```

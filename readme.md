@@ -8,7 +8,7 @@ There have been considerable researches on the self-awareness and consciousness 
 
 ## 1. Installation
 
-
+####  1.1 Create Environment
 ``` Bash
 # create conda environment
 conda create -n smrl python==3.6
@@ -16,6 +16,17 @@ conda activate smrl
 pip install -r requirements.txt
 conda install pytorch torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvidia
 ```
+
+####  1.2 Install Pybullet3.0
+Install pybullet accoring to [bullet3](https://github.com/bulletphysics/bullet3) and pybullet offical [website](https://pybullet.org/wordpress/).
+``` Bash
+# Install pybullet3.0
+pip3 install pybullet --upgrade --user
+python3 -m pybullet_envs.examples.enjoy_TF_AntBulletEnv_v0_2017may
+python3 -m pybullet_envs.examples.enjoy_TF_HumanoidFlagrunHarderBulletEnv_v1_2017jul
+python3 -m pybullet_envs.deep_mimic.testrl --arg_file run_humanoid3d_backflip_args.txt
+```
+
 
 ### Inner State Trainining Test
 Check whether it is running normally, this will only run a few rounds for running verification:

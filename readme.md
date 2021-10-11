@@ -1,4 +1,4 @@
-# Self-Modeling ReinforcementLearning Machine
+# Self-Modeling Reinforcement Learning Machine
 For UCL MSc Robotics and Compuatation Dissertation
 
 
